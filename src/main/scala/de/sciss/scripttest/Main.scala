@@ -5,11 +5,14 @@ import java.io.{ByteArrayInputStream, ByteArrayOutputStream, BufferedInputStream
 import scala.annotation.tailrec
 
 object Main extends App {
-  val exampleSource = """println("Hello from Foo")"""
+  val exampleSource =
+    """val xs = List("hello", "world")
+      |println(xs.map(_.capitalize).mkString(" "))
+      |""".stripMargin
 
   val packageName = "de.sciss.mellite.user"
 
-  private var userCount = 0
+  var userCount = 0
 
   def mkFunName(): String = {
     val c = userCount
@@ -55,7 +58,7 @@ object Main extends App {
     (fun, bytes)
   }
 
-  private def deleteDir(base: File): Unit = {
+  def deleteDir(base: File): Unit = {
     base.listFiles().foreach { f =>
       if (f.isFile) f.delete()
       else deleteDir(f)
@@ -116,8 +119,6 @@ object Main extends App {
       if (entry != null) {
         if (!entry.isDirectory) {
           val name  = entry.getName
-          // val sz    = entry.getSize.toInt
-          // println(s"name = '$name', size = $sz")
 
           // cf. http://stackoverflow.com/questions/8909743/jarentry-getsize-is-returning-1-when-the-jar-files-is-opened-as-inputstream-f
           val bs  = new ByteArrayOutputStream
@@ -127,7 +128,7 @@ object Main extends App {
             if (i >= 0) bs.write(i)
           }
           val bytes = bs.toByteArray
-          b += name -> bytes
+          b += mkClassName(name) -> bytes
         }
         loop()
       }
@@ -149,9 +150,7 @@ object Main extends App {
     println("Map contents:")
     map.keys.foreach(k => println(s"  '$k'"))
 
-    val map1    = map.map { case (key, value) => mkClassName(key) -> value }
-
-    val cl      = new MemoryJarClassLoader(map1)
+    val cl      = new MemoryClassLoader(map)
     test(fun, cl)   // should call `defineClass`
     test(fun, cl)   // should find cached class
   }
@@ -174,10 +173,10 @@ object Main extends App {
     path.substring(0, path.length - 6).replace("/", ".")
   }
 
-  class MemoryJarClassLoader(map: Map[String, Array[Byte]]) extends ClassLoader {
+  class MemoryClassLoader(map: Map[String, Array[Byte]]) extends ClassLoader {
     override protected def findClass(name: String): Class[_] =
       map.get(name).map { bytes =>
-        println(s"defineClass(\"$name\", ...)")
+        println(s"defineClass($name, ...)")
         defineClass(name, bytes, 0, bytes.length)
 
       } .getOrElse(super.findClass(name)) // throws exception
