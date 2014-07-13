@@ -141,6 +141,7 @@ object Main extends App {
   locally {
     println("Compiling...")
     val (fun, bytes) = compile(exampleSource)
+    println(s"Jar size: ${bytes.length}")
 
     //    val out = new FileOutputStream(new File(new File(sys.props("user.home"), "Desktop"), "test.jar"))
     //    out.write(bytes)

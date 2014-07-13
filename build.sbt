@@ -1,9 +1,7 @@
-scalaVersion := "2.10.3"
+scalaVersion := "2.11.1"
 
-libraryDependencies ++= Seq(
-  "org.scala-lang" % "scala-compiler" % scalaVersion.value
-)
+libraryDependencies += "org.scala-lang" % "scala-compiler" % scalaVersion.value
 
 fork in run := true
 
-scalacOptions ++= Seq("-deprecation", "-unchecked", "-feature")
+scalacOptions ++= Seq("-deprecation", "-unchecked", "-feature", "-Xfuture")
